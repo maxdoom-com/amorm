@@ -5,7 +5,7 @@ Another MongoDB ORM for Python
 This is amorm, meaning [a]nother [m]ongo [ORM].
 
 You can use it like this:
-```python3
+```py
     from amorm import Model, orm
 
     class User(Model):
