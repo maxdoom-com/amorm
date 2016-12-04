@@ -37,7 +37,7 @@ __author__ = "Nico Hoffmann"
 __copyright__ = "Copyright (C) 2016 Nico Hoffmann"
 __license__ = "BSD"
 
-from bson import ObjectId as __ObjectId
+from bson import ObjectId
 
 class orm:
     """Sets up and holds the connection to the database.
@@ -105,13 +105,17 @@ class Model(Object, metaclass=MetaModel):
     def create(cls, data={}):
         """Creates an instance with the data provided in the dict data.
         """
-        return cls(data)
+        if data is not None:
+            return cls(data)
+        else:
+            return None
 
     def __init__(self, data={}):
         """Creates a new instance of this model.
         """
-        for k in list(data.keys()):
-            setattr(self, k, data[k])
+        if data is not None:
+            for k in list(data.keys()):
+                setattr(self, k, data[k])
     
     def save(self):
         """Inserts or replaces this data set.
@@ -119,13 +123,27 @@ class Model(Object, metaclass=MetaModel):
         if not self.__has_id__:
             self._id = orm.collection(self.__collection__).insert( self.__data__ )
         else:
-            orm.collection(self.__collection__).replace_one( {'_id': __ObjectId(self._id)}, self.__data__ )
+            orm.collection(self.__collection__).replace_one( {'_id': ObjectId(self._id)}, self.__data__ )
+    
+    @property
+    def _id(self):
+        return self.__id
+
+    @_id.setter
+    def _id(self, value):
+        self.__id = str(value)
+
+    @classmethod
+    def get(cls, _id):
+        """Get one entry by it's ID.
+        """
+        return cls.create( orm.collection(cls.__collection__).find_one({ '_id': ObjectId(_id) }) )
     
     @classmethod
     def one(cls, conditions={}):
         """Get one entry matching the conditions.
         """
-        return cls.create( orm.collection(self.__collection__).find_one(conditions) )
+        return cls.create( orm.collection(cls.__collection__).find_one(conditions) )
     
     @classmethod
     def all(cls, conditions={}, limit=None, skip=None, order_by=None):
@@ -169,5 +187,5 @@ class Model(Object, metaclass=MetaModel):
     def delete(self):
         """Deletes one entry.
         """
-        orm.collection(self.__collection__).delete_one( {'_id': __ObjectId(self._id)} )
+        orm.collection(self.__collection__).delete_one( {'_id': ObjectId(self._id)} )
 
