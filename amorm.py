@@ -49,6 +49,7 @@ __license__ = "BSD"
 
 from bson import ObjectId
 
+
 class orm:
     """Sets up and holds the connection to the database.
     """
@@ -168,6 +169,8 @@ class Model(Object, metaclass=MetaModel):
         ... this will list 10 users, skipping the first 20, sorting by last_name, descending,
             with no further filtering conditions at all.
         """
+        from pymongo import ASCENDING, DESCENDING
+
         query = orm.collection(cls.__collection__).find(conditions)
         if limit is not None:
             query = query.limit(limit)
@@ -175,16 +178,16 @@ class Model(Object, metaclass=MetaModel):
             query = query.skip(skip)
         if order_by is not None:
             fieldname = '_id'
-            direction = pymongo.ASCENDING
+            direction = ASCENDING
             if order_by.startswith('-'):
-                direction = pymongo.DESCENDING
+                direction = DESCENDING
                 fieldname = order_by[1:]
             elif order_by.startswith('+'):
-                direction = pymongo.ASCENDING
+                direction = ASCENDING
                 fieldname = order_by[1:]
             else:
                 fieldname = order_by
-            query = query.order_by((fieldname, direction))
+            query = query.sort(fieldname, direction)
         for result in query:
             yield cls.create( result )
     
